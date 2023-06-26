@@ -30,6 +30,53 @@ This is useful if you do not have a publicly available domain e.g. [tailscale ce
 
 3. Add a cronjob that periodically executes `update_cert.py`
 
+### Combined with `tailscale cert`
+
+Create a script with the following content and configure it to run monthly:
+
+```bash
+#!/bin/bash
+
+set -x
+set -u
+set -o pipefail
+
+export CONTAINER_NAME=$(docker ps --format '{{.Names}}' | grep "k8s_tailscale_tailscale")
+
+if [[ -z "$CONTAINER_NAME" ]]; then
+   echo "Cannot find tailscale container"
+   exit 1
+fi
+
+# Get the modification time of the file before performing an action
+# CHANGE `cert_file` to meet your need
+cert_file="/mnt/certs/truenas.crt"
+previous_mtime=$(stat -c "%Y" "$cert_file")
+
+echo "Fetching certs..."
+# CHANGE `cert-file` AND `key-file` AND your domain name to meet your need
+docker exec -u root $CONTAINER_NAME sh -c 'tailscale cert --cert-file /mnt/certs/truenas.crt --key-file /mnt/certs/truenas.key <YOUR DOMAIN NAME>'
+
+# Get the modification time of the file after performing the action
+current_mtime=$(stat -c "%Y" "$cert_file")
+
+# Compare the modification times
+if [[ $previous_mtime -lt $current_mtime ]]; then
+  echo "Cert file has changed, refreshing UI and app certs"
+  python3 /path/to/update_cert.py
+else
+  echo "Cert file has not changed."
+fi
+
+echo "Done!"
+```
+
+The script does two things:
+1. Refresh the cert via `tailscale cert` command
+2. Execute `update_cert.py` to refresh the cert used in TrueNAS
+
+Note that you need to change the file paths to match your setup.
+
 ## References
 
 - https://github.com/acmesh-official/acme.sh
