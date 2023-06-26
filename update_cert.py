@@ -4,8 +4,8 @@ import requests
 import json
 from datetime import date
 
-# Read the credentials from config.json file
-with open('config.json') as config_file:
+# Read the credentials from `.config.json` file
+with open('.config.json') as config_file:
     config = json.load(config_file)
 
     # API endpoint URLs
