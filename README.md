@@ -3,6 +3,8 @@
 This repo contains scripts that automate TrueNAS certificate update. Currently
 it only supports UI certificate and app certificates updates.
 
+This is useful if you do not have a publicly available domain e.g. [tailscale cert](https://tailscale.com/kb/1153/enabling-https/).
+
 ## Assumptions
 
 - You have a running TrueNAS instance with UI certificate enabled
