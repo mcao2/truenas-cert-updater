@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import requests
 import json
 from datetime import date
+import time
 
 # Read the credentials from `.config.json` file
 with open('.config.json') as config_file:
@@ -60,6 +64,8 @@ if not get_cert_by_name(f"{API_BASE_URL}/chart/release/certificate_choices", cer
     response.raise_for_status()
     print(f"New certificate '{certificate_name}' created")
 
+time.sleep(3)
+
 # Retrieve the cert
 new_certificate = get_cert_by_name(f"{API_BASE_URL}/chart/release/certificate_choices", certificate_name)
 new_cert_id = new_certificate['id']
@@ -74,6 +80,8 @@ response = requests.put(f"{API_BASE_URL}/system/general",
                         json={"ui_certificate": str(new_cert_id)},
                         verify=False)
 response.raise_for_status()
+
+time.sleep(3)
 
 # Get all services
 # Filter services with certs
@@ -112,6 +120,8 @@ for service in services:
 
 print("Certificate update completed.")
 
+time.sleep(3)
+
 print("Deleting old certificate")
 for cert_id in ui_certificates.keys():
     if cert_id == new_cert_id:
@@ -121,6 +131,8 @@ for cert_id in ui_certificates.keys():
         response.raise_for_status()
     except Exception:
         print(f"Failed to delete cert {cert_id}, skip")
+
+time.sleep(3)
 
 print("Reloading TrueNAS web UI")
 req_get(f"{API_BASE_URL}/system/general/ui_restart")
