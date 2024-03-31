@@ -41,7 +41,8 @@ set -x
 set -u
 set -o pipefail
 
-export CONTAINER_NAME=$(docker ps --format '{{.Names}}' | grep "k8s_tailscale_tailscale")
+export NAMESPACE=ix-tailscale
+export CONTAINER_NAME=$(k3s kubectl get pods -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}')
 
 if [[ -z "$CONTAINER_NAME" ]]; then
    echo "Cannot find tailscale container"
@@ -50,12 +51,12 @@ fi
 
 # Get the modification time of the file before performing an action
 # CHANGE `cert_file` to meet your need
-cert_file="/mnt/certs/truenas.crt"
+cert_file="/<path to cert>.crt"
 previous_mtime=$(stat -c "%Y" "$cert_file")
 
 echo "Fetching certs..."
 # CHANGE `cert-file` AND `key-file` AND your domain name to meet your need
-docker exec -u root $CONTAINER_NAME sh -c 'tailscale cert --cert-file /mnt/certs/truenas.crt --key-file /mnt/certs/truenas.key <YOUR DOMAIN NAME>'
+k3s kubectl -n $NAMESPACE exec  $CONTAINER_NAME -- sh -c 'tailscale cert --cert-file /<path to cert>.crt --key-file /<path to key>.key <domain>'
 
 # Get the modification time of the file after performing the action
 current_mtime=$(stat -c "%Y" "$cert_file")
