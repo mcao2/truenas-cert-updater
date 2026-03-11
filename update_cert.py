@@ -45,8 +45,18 @@ def get_cert_by_name(cert_check_url, cert_name):
 print("Testing Connection TrueNAS")
 req_get(f"{API_BASE_URL}/system/state")
 
+trunas_version = req_get(f"{API_BASE_URL}/system/version")
+trunas_version = tuple(int(p) for p in trunas_version.split("-", 2)[-1].split("."))
+if trunas_version >= (24, 10):
+    APP_PATH = "app"
+else:
+    APP_PATH = "chart/release"
+
+print(f"Detected TrueNAS {trunas_version}, using app path of {APP_PATH}")
+
+
 # Import if not exists
-if not get_cert_by_name(f"{API_BASE_URL}/chart/release/certificate_choices", certificate_name):
+if not get_cert_by_name(f"{API_BASE_URL}/{APP_PATH}/certificate_choices", certificate_name):
     print(f"Uploading cert with name {certificate_name} to TrueNAS")
     # Create a new certificate
     with open(CERT_KEY_PATH, "r") as private_key_file, open(CERT_FILE_PATH, "r") as certificate_file:
@@ -67,7 +77,7 @@ if not get_cert_by_name(f"{API_BASE_URL}/chart/release/certificate_choices", cer
 time.sleep(3)
 
 # Retrieve the cert
-new_certificate = get_cert_by_name(f"{API_BASE_URL}/chart/release/certificate_choices", certificate_name)
+new_certificate = get_cert_by_name(f"{API_BASE_URL}/{APP_PATH}/certificate_choices", certificate_name)
 new_cert_id = new_certificate['id']
 
 # Update UI cert
@@ -86,7 +96,7 @@ time.sleep(3)
 # Get all services
 # Filter services with certs
 services = [
-    service for service in req_get(f"{API_BASE_URL}/chart/release") if service.get("config", {}).get("ixCertificates")
+    service for service in req_get(f"{API_BASE_URL}/{APP_PATH}") if service.get("config", {}).get("ixCertificates")
 ]
 
 # Print the filtered services
@@ -105,13 +115,13 @@ for service in services:
         print(f"Skip {service_id} since no main ingress defined")
         continue
 
-    print(f"Updating certificate to {new_cert_id} for chart release: {service_id}")
+    print(f"Updating certificate to {new_cert_id} for app: {service_id}")
     # Find and update the matching certificate ID
     updated_main_tls = [{**tls, "scaleCert": new_certificate["id"]} for tls in main_tls]
     # Update the service configuration
     ingress["main"]["tls"] = updated_main_tls
 
-    update_url = f"{API_BASE_URL}/chart/release/id/{service_id}"
+    update_url = f"{API_BASE_URL}/{APP_PATH}/id/{service_id}"
     response = requests.put(update_url, headers=headers, json={"values": {"ingress": ingress}}, verify=False)
     if response.ok:
         print(f"Service with ID {service_id} updated successfully.")

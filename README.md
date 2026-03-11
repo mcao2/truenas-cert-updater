@@ -78,6 +78,18 @@ The script does two things:
 
 Note that you need to change the file paths to match your setup.
 
+## TrueNAS Scale 24.10 and later
+
+Note that if you're running TrueNAS Scale 24.10 or later, then `k3s` has been replaced with `docker`.  Change the following lines:
+
+```bash
+export CONTAINER_NAME=$(docker ps -qf name=$NAMESPACE)
+
+echo "Fetching certs..."
+# CHANGE `cert-file` AND `key-file` AND your domain name to meet your need
+docker exec $CONTAINER_NAME sh -c 'tailscale cert --cert-file /<path to cert>.crt --key-file /<path to key>.key <domain>'
+```
+
 ## References
 
 - https://github.com/acmesh-official/acme.sh
