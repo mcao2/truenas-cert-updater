@@ -87,7 +87,7 @@ assert str(new_certificate["id"]) in ui_certificates
 print(f"Activating new cert: {new_cert_id}")
 response = requests.put(f"{API_BASE_URL}/system/general",
                         headers=headers,
-                        json={"ui_certificate": str(new_cert_id)},
+                        json={"ui_certificate": new_cert_id},
                         verify=False)
 response.raise_for_status()
 
@@ -142,7 +142,8 @@ for cert_id in ui_certificates.keys():
     except Exception:
         print(f"Failed to delete cert {cert_id}, skip")
 
-time.sleep(3)
-
 print("Reloading TrueNAS web UI")
-req_get(f"{API_BASE_URL}/system/general/ui_restart")
+
+# Default wait is 3 seconds
+response = requests.post(f"{API_BASE_URL}/system/general/ui_restart", headers=headers, verify=False)
+response.raise_for_status()
