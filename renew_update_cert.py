@@ -274,7 +274,7 @@ def delete_certificate(api_base_url: str, headers: dict[str, str], verify: bool,
 
 
 def restart_ui(api_base_url: str, headers: dict[str, str], verify: bool) -> Any:
-    return req_post(f"{api_base_url}/system/general/ui_restart", headers=headers, payload={}, verify=verify)
+    return req_post(f"{api_base_url}/system/general/ui_restart", headers=headers, payload=0, verify=verify)
 
 
 def main() -> None:
