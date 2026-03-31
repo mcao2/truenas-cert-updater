@@ -214,6 +214,26 @@ def get_certificate_by_name(
     return next((cert for cert in certificates if cert.get("name") == cert_name), None)
 
 
+def wait_for_certificate_by_name(
+    api_base_url: str,
+    headers: dict[str, str],
+    verify: bool,
+    app_path: str,
+    cert_name: str,
+    attempts: int = 10,
+    delay_seconds: float = 1.0,
+) -> dict[str, Any]:
+    import time
+
+    for _ in range(attempts):
+        cert = get_certificate_by_name(api_base_url, headers, verify, app_path, cert_name)
+        if cert is not None:
+            return cert
+        time.sleep(delay_seconds)
+
+    raise RuntimeError(f"Certificate {cert_name!r} was not found after import")
+
+
 def create_certificate(
     api_base_url: str,
     headers: dict[str, str],
