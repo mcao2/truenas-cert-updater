@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import datetime
 import os
+import pathlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -278,7 +279,10 @@ def restart_ui(api_base_url: str, headers: dict[str, str], verify: bool) -> Any:
 
 
 def main() -> None:
-    config_path = os.environ.get("TRUENAS_CERT_CONFIG", ".config.yaml")
+    config_path = os.environ.get(
+        "TRUENAS_CERT_CONFIG",
+        pathlib.Path(__file__).parent / ".config.yaml"
+    )
     config = load_config(config_path)
     headers = build_headers(config.api_key)
 
