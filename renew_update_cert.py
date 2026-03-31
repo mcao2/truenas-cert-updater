@@ -312,13 +312,23 @@ def main() -> None:
         cert_record = existing_cert
     else:
         logger.info(f"Creating certificate in TrueNAS: {cert_name}")
-        cert_record = create_certificate(
+        # despite what the documentation says, the API returns a job ID for certificate imports
+        # and not the object representing the certificate
+        job_id = create_certificate(
             config.api_base_url,
             headers,
             config.verify_ssl,
             cert_name,
             certificate,
             private_key,
+        )
+        logger.info(f"Certificate import job started: {job_id}")
+        cert_record = wait_for_certificate_by_name(
+            config.api_base_url,
+            headers,
+            config.verify_ssl,
+            app_path,
+            cert_name,
         )
 
     cert_id = cert_record["id"]
