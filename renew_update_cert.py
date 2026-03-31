@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import re
+import datetime
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -267,7 +268,7 @@ def main() -> None:
     app_path = get_app_path(config.api_base_url, headers, config.verify_ssl)
     logger.info(f"Using TrueNAS API path: {app_path}")
 
-    cert_name = f"{config.certificate_name_prefix}-{config.hostname}"
+    cert_name = f"{config.certificate_name_prefix}-{datetime.datetime.now().strftime('%Y%m%d')}"
 
     docker_client = docker.from_env()
     container = find_tailscale_container(docker_client, config.tailscale_container_name_pattern)
