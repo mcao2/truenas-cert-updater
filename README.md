@@ -153,20 +153,16 @@ verify_ssl: false
 
 ### Usage
 
-Run the script directly:
-
-```bash
-python3 renew_update_cert.py
-```
-
-By default, the script looks for `.config.yaml` in the current directory.
-
-To use a different config file, set:
-
-```bash
-export TRUENAS_CERT_CONFIG=/path/to/config.yaml 
-python3 renew_update_cert.py
-```
+1. `git clone git@github.com:mcao2/truenas-cert-updater.git`
+2. Create a config file `.config.yaml` as described above.
+3. Create a cronjob that runs the script periodically.
+    - Select the `root` user for the cronjob.
+    - Set the cronjob to run more often than every 90 days (the default expiry for the certificate).
+    - Set the command to:
+    ```bash
+    python3 /path/to/renew_update_cert.py
+    ```
+4. (Optional) Test the script by running it directly.
 
 ### Behavior details
 
