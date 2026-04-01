@@ -13,6 +13,7 @@ import docker
 import requests
 import urllib3
 import yaml
+import json
 import logging
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -31,8 +32,15 @@ class Config:
 
 
 def load_config(config_path: str | Path) -> Config:
+    config_path = Path(config_path)
+
     with open(config_path, "rt", encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
+        if config_path.suffix.lower() == ".json":
+            raw = json.load(f) or {}
+        elif config_path.suffix.lower() in {".yaml", ".yml"}:
+            raw = yaml.safe_load(f) or {}
+        else:
+            raise ValueError("Config file must be .json, .yaml, or .yml")
 
     required = [
         "api_key",
@@ -43,7 +51,7 @@ def load_config(config_path: str | Path) -> Config:
         raise ValueError(f"Missing required config keys: {', '.join(missing)}")
 
     return Config(
-        api_base_url=raw.get("api_base_url", 'https://127.0.0.1/api/v2.0').rstrip("/"),
+        api_base_url=raw.get("api_base_url", "https://127.0.0.1/api/v2.0").rstrip("/"),
         api_key=raw["api_key"],
         hostname=raw["hostname"],
         tailscale_container_name_pattern=raw.get("tailscale_container_name_pattern", "tailscale"),
@@ -283,6 +291,20 @@ def main() -> None:
         "TRUENAS_CERT_CONFIG",
         pathlib.Path(__file__).parent / ".config.yaml"
     )
+    config_path = Path(config_path)
+
+    if not config_path.exists():
+        yaml_path = config_path.with_suffix(".yaml")
+        yml_path = config_path.with_suffix(".yml")
+        json_path = config_path.with_suffix(".json")
+
+        if yaml_path.exists():
+            config_path = yaml_path
+        elif yml_path.exists():
+            config_path = yml_path
+        elif json_path.exists():
+            config_path = json_path
+
     config = load_config(config_path)
     headers = build_headers(config.api_key)
 
